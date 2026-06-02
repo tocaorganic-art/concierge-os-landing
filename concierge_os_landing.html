@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Concierge OS — The Operating System for Elite Concierges</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080807;
+  --surface: #0f0f0d;
+  --surface2: #161614;
+  --border: rgba(255,255,255,0.06);
+  --gold: #c9a84c;
+  --gold-light: #e8cc80;
+  --gold-dim: rgba(201,168,76,0.12);
+  --gold-glow: rgba(201,168,76,0.06);
+  --text: #ede9e0;
+  --text-dim: rgba(237,233,224,0.42);
+  --text-mid: rgba(237,233,224,0.68);
+  --green: #4caf7d;
+  --amber: #e8a84c;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'DM Mono',monospace;background:var(--bg);color:var(--text);overflow-x:hidden;}
+
+/* NOISE TEXTURE */
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:0;opacity:0.6;
+}
+
+/* NAV */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:20px 48px;
+  background:rgba(8,8,7,0.85);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+}
+.nav-logo{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:var(--gold-light);letter-spacing:.02em;}
+.nav-logo span{color:var(--text-dim);font-weight:300;}
+.nav-links{display:flex;gap:32px;align-items:center;}
+.nav-links a{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;transition:color .2s;}
+.nav-links a:hover{color:var(--gold);}
+.nav-cta{
+  background:var(--gold);color:var(--bg);
+  font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;
+  padding:9px 20px;border-radius:3px;text-decoration:none;
+  transition:background .2s;font-weight:500;
+}
+.nav-cta:hover{background:var(--gold-light);}
+
+/* LANG TOGGLE */
+.lang-toggle{display:flex;gap:8px;}
+.lang-btn{background:none;border:1px solid var(--border);color:var(--text-dim);font-family:'DM Mono',monospace;font-size:9px;padding:4px 8px;border-radius:3px;cursor:pointer;transition:all .2s;letter-spacing:.08em;}
+.lang-btn.active,.lang-btn:hover{border-color:var(--gold);color:var(--gold);}
+
+/* HERO */
+.hero{
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:120px 48px 80px;text-align:center;position:relative;
+}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  border:1px solid rgba(201,168,76,0.25);
+  background:var(--gold-dim);
+  padding:6px 16px;border-radius:20px;
+  font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);
+  margin-bottom:40px;
+  animation:fadeUp .6s ease both;
+}
+.hero-badge-dot{width:5px;height:5px;background:var(--gold);border-radius:50%;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+
+.hero h1{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(52px,8vw,96px);
+  font-weight:300;line-height:.95;
+  letter-spacing:-.01em;
+  margin-bottom:32px;
+  animation:fadeUp .6s ease .1s both;
+}
+.hero h1 em{font-style:italic;color:var(--gold-light);}
+.hero h1 strong{font-weight:600;}
+
+.hero-sub{
+  font-size:13px;color:var(--text-mid);line-height:1.7;
+  max-width:540px;margin:0 auto 52px;
+  letter-spacing:.02em;
+  animation:fadeUp .6s ease .2s both;
+}
+
+.hero-actions{
+  display:flex;gap:14px;align-items:center;justify-content:center;flex-wrap:wrap;
+  animation:fadeUp .6s ease .3s both;
+}
+.btn-primary{
+  background:var(--gold);color:var(--bg);
+  font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;
+  padding:14px 32px;border-radius:4px;text-decoration:none;
+  transition:all .2s;font-weight:500;border:none;cursor:pointer;
+}
+.btn-primary:hover{background:var(--gold-light);transform:translateY(-1px);}
+.btn-ghost-lg{
+  background:transparent;color:var(--text-mid);
+  font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;
+  padding:14px 32px;border-radius:4px;text-decoration:none;
+  border:1px solid var(--border);transition:all .2s;cursor:pointer;
+}
+.btn-ghost-lg:hover{border-color:var(--gold);color:var(--gold);}
+
+.hero-note{font-size:9px;color:var(--text-dim);letter-spacing:.12em;margin-top:20px;animation:fadeUp .6s ease .4s both;}
+
+/* HERO VISUAL */
+.hero-visual{
+  margin-top:72px;
+  position:relative;
+  animation:fadeUp .8s ease .5s both;
+  max-width:900px;width:100%;
+}
+.hero-visual::before{
+  content:'';position:absolute;inset:-40px;
+  background:radial-gradient(ellipse at 50% 40%, rgba(201,168,76,0.08) 0%, transparent 70%);
+  pointer-events:none;
+}
+.dashboard-preview{
+  background:var(--surface);border:1px solid rgba(201,168,76,0.15);
+  border-radius:12px;overflow:hidden;
+  box-shadow:0 40px 120px rgba(0,0,0,0.6), 0 0 0 1px rgba(201,168,76,0.08);
+}
+.preview-bar{
+  background:var(--surface2);border-bottom:1px solid var(--border);
+  padding:12px 16px;display:flex;align-items:center;gap:8px;
+}
+.dot{width:8px;height:8px;border-radius:50%;}
+.preview-body{padding:20px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.mini-kpi{
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:6px;padding:14px;
+}
+.mini-kpi-label{font-size:7px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;}
+.mini-kpi-val{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--text);font-weight:300;}
+.mini-kpi-delta{font-size:8px;color:var(--green);margin-top:4px;}
+.preview-pipeline{padding:0 20px 20px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.mini-col{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px;}
+.mini-col-label{font-size:7px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-dim);margin-bottom:8px;}
+.mini-card{background:var(--surface2);border-radius:4px;padding:8px;margin-bottom:5px;}
+.mini-card-name{font-size:8px;color:var(--text);margin-bottom:2px;}
+.mini-card-val{font-family:'Cormorant Garamond',serif;font-size:13px;color:var(--gold-light);}
+
+/* SECTIONS */
+section{padding:100px 48px;position:relative;z-index:1;}
+
+/* STATS */
+.stats-section{
+  border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+  padding:60px 48px;
+  display:grid;grid-template-columns:repeat(4,1fr);gap:0;
+}
+.stat-item{
+  text-align:center;padding:20px;
+  border-right:1px solid var(--border);
+}
+.stat-item:last-child{border-right:none;}
+.stat-val{font-family:'Cormorant Garamond',serif;font-size:48px;font-weight:300;color:var(--gold-light);line-height:1;}
+.stat-label{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-dim);margin-top:8px;}
+
+/* FEATURES */
+.features-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:1px;
+  background:var(--border);border:1px solid var(--border);border-radius:8px;overflow:hidden;
+  max-width:1000px;margin:60px auto 0;
+}
+.feature-card{
+  background:var(--surface);padding:40px 32px;
+  transition:background .2s;
+}
+.feature-card:hover{background:var(--surface2);}
+.feature-icon{font-size:24px;margin-bottom:20px;}
+.feature-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;color:var(--text);margin-bottom:12px;}
+.feature-desc{font-size:10px;color:var(--text-dim);line-height:1.8;letter-spacing:.02em;}
+.feature-tag{
+  display:inline-block;margin-top:16px;
+  font-size:8px;letter-spacing:.14em;text-transform:uppercase;
+  background:var(--gold-dim);color:var(--gold);
+  padding:3px 10px;border-radius:3px;
+  border:1px solid rgba(201,168,76,0.2);
+}
+
+/* SECTION HEADER */
+.section-label{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-bottom:16px;}
+.section-title{font-family:'Cormorant Garamond',serif;font-size:clamp(36px,5vw,56px);font-weight:300;line-height:1.1;margin-bottom:20px;}
+.section-title em{font-style:italic;color:var(--gold-light);}
+.section-sub{font-size:11px;color:var(--text-dim);line-height:1.8;max-width:500px;}
+
+/* PRICING */
+.pricing-toggle{
+  display:flex;align-items:center;gap:12px;justify-content:center;
+  margin-bottom:52px;font-size:10px;color:var(--text-dim);letter-spacing:.08em;
+}
+.toggle-switch{
+  width:44px;height:24px;background:var(--surface2);border:1px solid var(--border);
+  border-radius:12px;cursor:pointer;position:relative;transition:background .2s;
+}
+.toggle-switch.on{background:var(--gold-dim);border-color:rgba(201,168,76,0.3);}
+.toggle-knob{
+  width:18px;height:18px;background:var(--text-dim);border-radius:50%;
+  position:absolute;top:2px;left:3px;transition:all .2s;
+}
+.toggle-switch.on .toggle-knob{left:23px;background:var(--gold);}
+.toggle-save{
+  background:var(--gold-dim);color:var(--gold);
+  font-size:8px;padding:2px 8px;border-radius:3px;letter-spacing:.1em;
+}
+
+.pricing-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:16px;
+  max-width:920px;margin:0 auto;
+}
+.plan-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:8px;padding:36px 28px;
+  position:relative;transition:border-color .2s;
+}
+.plan-card:hover{border-color:rgba(201,168,76,0.2);}
+.plan-card.featured{
+  border-color:rgba(201,168,76,0.35);
+  background:linear-gradient(180deg,rgba(201,168,76,0.05) 0%,var(--surface) 40%);
+}
+.plan-card.featured::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+}
+.plan-badge{
+  position:absolute;top:-10px;left:50%;transform:translateX(-50%);
+  background:var(--gold);color:var(--bg);
+  font-size:8px;letter-spacing:.14em;text-transform:uppercase;
+  padding:3px 12px;border-radius:3px;font-weight:500;white-space:nowrap;
+}
+.plan-name{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-dim);margin-bottom:20px;}
+.plan-price{font-family:'Cormorant Garamond',serif;font-size:52px;font-weight:300;color:var(--text);line-height:1;}
+.plan-price sup{font-size:18px;vertical-align:top;margin-top:12px;display:inline-block;color:var(--text-dim);}
+.plan-period{font-size:9px;color:var(--text-dim);letter-spacing:.1em;margin-top:6px;}
+.plan-divider{border:none;border-top:1px solid var(--border);margin:24px 0;}
+.plan-features{list-style:none;display:flex;flex-direction:column;gap:10px;margin-bottom:28px;}
+.plan-features li{font-size:10px;color:var(--text-mid);display:flex;gap:8px;align-items:flex-start;line-height:1.5;}
+.plan-features li::before{content:'✦';color:var(--gold);font-size:8px;margin-top:2px;flex-shrink:0;}
+.plan-features li.locked{color:var(--text-dim);}
+.plan-features li.locked::before{content:'○';color:var(--text-dim);}
+.plan-btn{
+  width:100%;padding:12px;border-radius:4px;
+  font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;
+  cursor:pointer;transition:all .2s;border:none;
+}
+.plan-btn-gold{background:var(--gold);color:var(--bg);font-weight:500;}
+.plan-btn-gold:hover{background:var(--gold-light);}
+.plan-btn-ghost{background:transparent;color:var(--text-mid);border:1px solid var(--border);}
+.plan-btn-ghost:hover{border-color:var(--gold);color:var(--gold);}
+.plan-limit{font-size:9px;color:var(--text-dim);letter-spacing:.08em;margin-top:10px;text-align:center;}
+
+/* TESTIMONIALS */
+.testimonials-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:1000px;margin:60px auto 0;}
+.testimonial{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:8px;padding:32px;
+}
+.testimonial-text{
+  font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:300;font-style:italic;
+  color:var(--text);line-height:1.5;margin-bottom:24px;
+}
+.testimonial-author{display:flex;align-items:center;gap:12px;}
+.testimonial-avatar{
+  width:36px;height:36px;border-radius:50%;
+  background:linear-gradient(135deg,var(--gold-dim),rgba(201,168,76,0.3));
+  border:1px solid rgba(201,168,76,0.2);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--gold-light);
+}
+.testimonial-name{font-size:10px;color:var(--text);margin-bottom:2px;}
+.testimonial-role{font-size:9px;color:var(--text-dim);letter-spacing:.08em;}
+.stars{color:var(--gold);font-size:10px;margin-bottom:16px;letter-spacing:2px;}
+
+/* CTA FINAL */
+.cta-section{
+  text-align:center;padding:120px 48px;
+  background:radial-gradient(ellipse at 50% 0%, rgba(201,168,76,0.06) 0%, transparent 60%);
+  border-top:1px solid var(--border);
+}
+
+/* FOOTER */
+footer{
+  border-top:1px solid var(--border);
+  padding:32px 48px;
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:9px;color:var(--text-dim);letter-spacing:.1em;
+}
+.footer-links{display:flex;gap:24px;}
+.footer-links a{color:var(--text-dim);text-decoration:none;}
+.footer-links a:hover{color:var(--gold);}
+
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  nav{padding:16px 20px;}
+  .nav-links{display:none;}
+  .hero{padding:100px 20px 60px;}
+  section{padding:60px 20px;}
+  .stats-section{grid-template-columns:repeat(2,1fr);padding:40px 20px;}
+  .stat-item:nth-child(2){border-right:none;}
+  .stat-item:nth-child(3){border-top:1px solid var(--border);}
+  .stat-item:nth-child(4){border-top:1px solid var(--border);border-right:none;}
+  .features-grid{grid-template-columns:1fr;}
+  .pricing-grid{grid-template-columns:1fr;max-width:400px;}
+  .testimonials-grid{grid-template-columns:1fr;}
+  .preview-body{grid-template-columns:repeat(2,1fr);}
+  .preview-pipeline{grid-template-columns:repeat(2,1fr);}
+  footer{flex-direction:column;gap:16px;text-align:center;}
+}
+
+/* MODAL */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);
+  z-index:200;display:none;align-items:center;justify-content:center;padding:20px;
+}
+.modal-overlay.open{display:flex;}
+.modal{
+  background:var(--surface);border:1px solid rgba(201,168,76,0.2);
+  border-radius:10px;padding:40px;max-width:440px;width:100%;
+  position:relative;
+}
+.modal::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);border-radius:10px 10px 0 0;}
+.modal-title{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;margin-bottom:6px;}
+.modal-sub{font-size:10px;color:var(--text-dim);letter-spacing:.06em;margin-bottom:28px;}
+.modal-close{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:18px;}
+.form-group{margin-bottom:16px;}
+.form-label{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;display:block;}
+.form-input{
+  width:100%;background:var(--surface2);border:1px solid var(--border);
+  color:var(--text);font-family:'DM Mono',monospace;font-size:11px;
+  padding:10px 14px;border-radius:4px;outline:none;transition:border-color .2s;
+}
+.form-input:focus{border-color:var(--gold);}
+.coupon-row{display:flex;gap:8px;}
+.coupon-row .form-input{flex:1;}
+.btn-apply{
+  background:transparent;border:1px solid var(--border);color:var(--text-mid);
+  font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;
+  padding:10px 14px;border-radius:4px;cursor:pointer;transition:all .2s;white-space:nowrap;
+}
+.btn-apply:hover{border-color:var(--gold);color:var(--gold);}
+.coupon-feedback{font-size:9px;margin-top:4px;letter-spacing:.06em;}
+.coupon-ok{color:var(--green);}
+.coupon-err{color:#e05c5c;}
+.plan-selected{
+  background:var(--gold-dim);border:1px solid rgba(201,168,76,0.2);
+  border-radius:4px;padding:10px 14px;margin-bottom:20px;
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:10px;
+}
+.plan-selected-name{color:var(--gold-light);}
+.plan-selected-price{color:var(--text-dim);}
+.modal-submit{width:100%;margin-top:8px;}
+.modal-legal{font-size:8px;color:var(--text-dim);text-align:center;margin-top:12px;letter-spacing:.06em;line-height:1.6;}
+.success-state{display:none;text-align:center;padding:20px 0;}
+.success-icon{font-size:40px;margin-bottom:16px;}
+.success-title{font-family:'Cormorant Garamond',serif;font-size:26px;margin-bottom:8px;}
+.success-sub{font-size:10px;color:var(--text-dim);line-height:1.7;}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo" style="display:flex;align-items:center;gap:10px;"><img src="data:image/jpeg;base64,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" alt="Toca Concierge OS" style="width:36px;height:36px;border-radius:8px;object-fit:cover;"><span style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--gold-light);">Toca Concierge<span style="color:var(--text-dim);font-weight:300;"> OS</span></span></div>
+  <div class="nav-links">
+    <a href="#features" data-i18n="nav_features">Funcionalidades</a>
+    <a href="#pricing" data-i18n="nav_pricing">Planos</a>
+    <a href="#testimonials" data-i18n="nav_testimonials">Depoimentos</a>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <div class="lang-toggle">
+      <button class="lang-btn active" onclick="setLang('pt')">🇧🇷 PT</button>
+      <button class="lang-btn" onclick="setLang('en')">🇺🇸 EN</button>
+      <button class="lang-btn" onclick="setLang('es')">🇪🇸 ES</button>
+    </div>
+    <a href="https://amazing-elite-concierge-flow.base44.app" class="nav-cta" data-i18n="nav_cta">Começar grátis</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div style="margin-bottom:32px;animation:fadeUp .5s ease both;">
+  <img src="data:image/jpeg;base64,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" alt="Toca Concierge OS" style="width:88px;height:88px;border-radius:20px;object-fit:cover;box-shadow:0 8px 40px rgba(201,168,76,0.25),0 0 0 1px rgba(201,168,76,0.15);">
+</div>
+<div class="hero-badge">
+    <span class="hero-badge-dot"></span>
+    <span data-i18n="hero_badge">Mercado de USD 51 bilhões · Você no centro</span>
+  </div>
+  <h1 data-i18n="hero_h1_html">O sistema operacional<br>do <em>concierge</em> <strong>de elite</strong></h1>
+  <p class="hero-sub" data-i18n="hero_sub">Gerencie clientes, propostas e operações em um único lugar. Do lead ao PDF de proposta — em segundos.</p>
+  <div class="hero-actions">
+    <a href="#" class="btn-primary" onclick="openModal('pro');return false;" data-i18n="hero_cta1">Iniciar 7 dias grátis</a>
+    <a href="https://amazing-elite-concierge-flow.base44.app" class="btn-ghost-lg" data-i18n="hero_cta2">Ver demo ao vivo →</a>
+  </div>
+  <p class="hero-note" data-i18n="hero_note">Sem cartão de crédito · Cancele quando quiser · Suporte em PT, EN, ES</p>
+
+  <!-- DASHBOARD PREVIEW -->
+  <div class="hero-visual">
+    <div class="dashboard-preview">
+      <div class="preview-bar">
+        <div class="dot" style="background:#e05c5c"></div>
+        <div class="dot" style="background:#e8a84c"></div>
+        <div class="dot" style="background:#4caf7d"></div>
+        <img src="data:image/jpeg;base64,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" style="width:14px;height:14px;border-radius:3px;margin-left:8px;object-fit:cover;"><span style="margin-left:12px;font-size:9px;color:var(--text-dim);letter-spacing:.1em;">amazing-elite-concierge-flow.base44.app</span>
+      </div>
+      <div class="preview-body">
+        <div class="mini-kpi"><div class="mini-kpi-label">Receita / Month</div><div class="mini-kpi-val">R$48k</div><div class="mini-kpi-delta">▲ +12%</div></div>
+        <div class="mini-kpi"><div class="mini-kpi-label">Proposals / Propuestas</div><div class="mini-kpi-val">12</div><div class="mini-kpi-delta" style="color:var(--gold)">4 pending</div></div>
+        <div class="mini-kpi"><div class="mini-kpi-label">Conversion / Conversión</div><div class="mini-kpi-val">68%</div><div class="mini-kpi-delta">▲ +8pp</div></div>
+        <div class="mini-kpi"><div class="mini-kpi-label">Clients / Clientes</div><div class="mini-kpi-val">9</div><div class="mini-kpi-delta" style="color:var(--text-dim)">active</div></div>
+      </div>
+      <div class="preview-pipeline">
+        <div class="mini-col"><div class="mini-col-label">Lead</div><div class="mini-card"><div class="mini-card-name">Família Ortega</div><div class="mini-card-val">R$ 12k</div></div></div>
+        <div class="mini-col"><div class="mini-col-label">Proposal</div><div class="mini-card"><div class="mini-card-name">Grupo BA</div><div class="mini-card-val">R$ 47k</div></div></div>
+        <div class="mini-col"><div class="mini-col-label">Confirmed</div><div class="mini-card"><div class="mini-card-name">Casamento Silva</div><div class="mini-card-val">R$ 95k</div></div></div>
+        <div class="mini-col"><div class="mini-col-label">Done</div><div class="mini-card"><div class="mini-card-name">Família Mendes</div><div class="mini-card-val">R$ 31k</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-section">
+  <div class="stat-item"><div class="stat-val">USD 51B</div><div class="stat-label" data-i18n="stat1">Mercado em 2036</div></div>
+  <div class="stat-item"><div class="stat-val">3</div><div class="stat-label" data-i18n="stat2">Idiomas suportados</div></div>
+  <div class="stat-item"><div class="stat-val">7</div><div class="stat-label" data-i18n="stat3">Dias grátis de trial</div></div>
+  <div class="stat-item"><div class="stat-val">PDF</div><div class="stat-label" data-i18n="stat4">Proposta em 1 clique</div></div>
+</div>
+
+<!-- FEATURES -->
+<section id="features" style="text-align:center;">
+  <div class="section-label" data-i18n="feat_label">Funcionalidades</div>
+  <h2 class="section-title" data-i18n="feat_title_html">Tudo que você precisa<br>para <em>operar no mais alto nível</em></h2>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">◈</div>
+      <div class="feature-title" data-i18n="feat1_title">Pipeline Visual</div>
+      <div class="feature-desc" data-i18n="feat1_desc">Kanban interativo com drag & drop. Arraste propostas entre Lead → Confirmado e o banco atualiza automaticamente.</div>
+      <span class="feature-tag" data-i18n="feat1_tag">Drag & Drop</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">◫</div>
+      <div class="feature-title" data-i18n="feat2_title">PDF de Proposta</div>
+      <div class="feature-desc" data-i18n="feat2_desc">Gere propostas comerciais em PDF com design premium em segundos. Multilíngue, com seus dados e do cliente.</div>
+      <span class="feature-tag" data-i18n="feat2_tag">Design Premium</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">▦</div>
+      <div class="feature-title" data-i18n="feat3_title">Agenda Inteligente</div>
+      <div class="feature-desc" data-i18n="feat3_desc">Alertas automáticos para tarefas próximas do horário. Notificação pulsante quando falta menos de 30 minutos.</div>
+      <span class="feature-tag" data-i18n="feat3_tag">Notificações</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">▱</div>
+      <div class="feature-title" data-i18n="feat4_title">Relatórios Completos</div>
+      <div class="feature-desc" data-i18n="feat4_desc">Receita por mês, taxa de conversão, top clientes e sazonalidade. Prove ROI para seus clientes com dados reais.</div>
+      <span class="feature-tag" data-i18n="feat4_tag">Plano Pro</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">◯</div>
+      <div class="feature-title" data-i18n="feat5_title">Multilíngue</div>
+      <div class="feature-desc" data-i18n="feat5_desc">Interface completa em Português, English e Español. PDFs gerados no idioma do cliente.</div>
+      <span class="feature-tag" data-i18n="feat5_tag">PT · EN · ES</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">◎</div>
+      <div class="feature-title" data-i18n="feat6_title">White-label</div>
+      <div class="feature-desc" data-i18n="feat6_desc">Para agências: use sua própria logo e cores. Seus clientes veem sua marca, não a nossa.</div>
+      <span class="feature-tag" data-i18n="feat6_tag">Plano Agency</span>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing" style="text-align:center;">
+  <div class="section-label" data-i18n="pricing_label">Planos</div>
+  <h2 class="section-title" data-i18n="pricing_title_html">Preços <em>simples e transparentes</em></h2>
+  <div class="pricing-toggle">
+    <span data-i18n="billing_monthly">Mensal</span>
+    <div class="toggle-switch" id="billingToggle" onclick="toggleBilling()">
+      <div class="toggle-knob"></div>
+    </div>
+    <span data-i18n="billing_annual">Anual</span>
+    <span class="toggle-save" data-i18n="billing_save">Economize 20%</span>
+  </div>
+  <div class="pricing-grid">
+    <!-- STARTER -->
+    <div class="plan-card">
+      <div class="plan-name">Starter</div>
+      <div class="plan-price"><sup id="starter-currency">R$</sup><span id="starter-price">97</span></div>
+      <div class="plan-period" data-i18n="per_month">por mês</div>
+      <hr class="plan-divider">
+      <ul class="plan-features">
+        <li data-i18n="s1">Até 5 clientes ativos</li>
+        <li data-i18n="s2">Pipeline kanban</li>
+        <li data-i18n="s3">Agenda com notificações</li>
+        <li data-i18n="s4">PDF de proposta</li>
+        <li data-i18n="s5">App mobile</li>
+        <li class="locked" data-i18n="s6">Relatórios (Pro)</li>
+        <li class="locked" data-i18n="s7">White-label (Agency)</li>
+      </ul>
+      <button class="plan-btn plan-btn-ghost" onclick="openModal('starter')" data-i18n="plan_trial">Iniciar 7 dias grátis</button>
+      <div class="plan-limit" data-i18n="no_card">Sem cartão de crédito</div>
+    </div>
+    <!-- PRO -->
+    <div class="plan-card featured">
+      <div class="plan-badge" data-i18n="most_popular">Mais popular</div>
+      <div class="plan-name">Pro</div>
+      <div class="plan-price"><sup id="pro-currency">R$</sup><span id="pro-price">197</span></div>
+      <div class="plan-period" data-i18n="per_month">por mês</div>
+      <hr class="plan-divider">
+      <ul class="plan-features">
+        <li data-i18n="p1">Clientes ilimitados</li>
+        <li data-i18n="p2">Pipeline + drag & drop</li>
+        <li data-i18n="p3">Relatórios completos</li>
+        <li data-i18n="p4">PDF multilíngue</li>
+        <li data-i18n="p5">Exportação de dados</li>
+        <li data-i18n="p6">Suporte prioritário</li>
+        <li class="locked" data-i18n="p7">White-label (Agency)</li>
+      </ul>
+      <button class="plan-btn plan-btn-gold" onclick="openModal('pro')" data-i18n="plan_trial">Iniciar 7 dias grátis</button>
+      <div class="plan-limit" data-i18n="no_card">Sem cartão de crédito</div>
+    </div>
+    <!-- AGENCY -->
+    <div class="plan-card">
+      <div class="plan-name">Agency</div>
+      <div class="plan-price"><sup id="agency-currency">R$</sup><span id="agency-price">397</span></div>
+      <div class="plan-period" data-i18n="per_month">por mês</div>
+      <hr class="plan-divider">
+      <ul class="plan-features">
+        <li data-i18n="a1">Até 3 usuários</li>
+        <li data-i18n="a2">Tudo do Pro</li>
+        <li data-i18n="a3">White-label completo</li>
+        <li data-i18n="a4">Logo e cores próprias</li>
+        <li data-i18n="a5">API access</li>
+        <li data-i18n="a6">Onboarding dedicado</li>
+      </ul>
+      <button class="plan-btn plan-btn-ghost" onclick="openModal('agency')" data-i18n="plan_talk">Falar com vendas</button>
+      <div class="plan-limit" data-i18n="agency_note">Para agências e operações</div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section id="testimonials" style="text-align:center;">
+  <div class="section-label" data-i18n="test_label">Depoimentos</div>
+  <h2 class="section-title" data-i18n="test_title_html">Concierges que já<br><em>operam no próximo nível</em></h2>
+  <div class="testimonials-grid">
+    <div class="testimonial">
+      <div class="stars">✦✦✦✦✦</div>
+      <div class="testimonial-text">"Em 15 anos de concierge, nunca tive uma ferramenta que entendesse o meu trabalho. O Concierge OS é a primeira."</div>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">M</div>
+        <div><div class="testimonial-name">Marina Cavalcanti</div><div class="testimonial-role">Luxury Travel Concierge · São Paulo</div></div>
+      </div>
+    </div>
+    <div class="testimonial">
+      <div class="stars">✦✦✦✦✦</div>
+      <div class="testimonial-text">"The PDF proposal feature closed a $45,000 deal in the same day. My clients were impressed by the presentation."</div>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">J</div>
+        <div><div class="testimonial-name">James Whitmore</div><div class="testimonial-role">Elite Concierge · Miami</div></div>
+      </div>
+    </div>
+    <div class="testimonial">
+      <div class="stars">✦✦✦✦✦</div>
+      <div class="testimonial-text">"Con el plan Agency, mis 3 concierges trabajan juntos bajo mi marca. El white-label fue el diferenciador."</div>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">C</div>
+        <div><div class="testimonial-name">Catalina Reyes</div><div class="testimonial-role">Agencia Concierge · Buenos Aires</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA FINAL -->
+<section class="cta-section">
+  <div class="section-label" data-i18n="cta_label">Comece hoje</div>
+  <h2 class="section-title" style="margin:0 auto 20px;" data-i18n="cta_title_html">Pronto para operar<br>no <em>mais alto nível?</em></h2>
+  <p class="section-sub" style="margin:0 auto 40px;" data-i18n="cta_sub">7 dias grátis, sem cartão. Cancele quando quiser. Suporte humano em português, inglês e espanhol.</p>
+  <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
+    <button class="btn-primary" onclick="openModal('pro')" data-i18n="cta_btn1">Iniciar trial gratuito</button>
+    <a href="https://amazing-elite-concierge-flow.base44.app" class="btn-ghost-lg" data-i18n="cta_btn2">Acessar demo →</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div style="display:flex;align-items:center;gap:10px;"><img src="data:image/jpeg;base64,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" alt="Logo" style="width:28px;height:28px;border-radius:6px;object-fit:cover;"><span style="font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--gold-light);">Toca Concierge OS</span></div>
+  <div class="footer-links">
+    <a href="#" data-i18n="footer_privacy">Privacidade</a>
+    <a href="#" data-i18n="footer_terms">Termos</a>
+    <a href="mailto:hello@concierge.os" data-i18n="footer_contact">Contato</a>
+  </div>
+  <div>© 2026 Concierge OS</div>
+</footer>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div id="modalForm">
+      <div class="plan-selected">
+        <span class="plan-selected-name" id="modalPlanName">Pro</span>
+        <span class="plan-selected-price" id="modalPlanPrice">R$ 197/mês</span>
+      </div>
+      <h3 class="modal-title" data-i18n="modal_title">Iniciar trial gratuito</h3>
+      <p class="modal-sub" data-i18n="modal_sub">7 dias grátis. Sem cartão de crédito.</p>
+      <div class="form-group">
+        <label class="form-label" data-i18n="modal_email">E-mail profissional</label>
+        <input class="form-input" type="email" id="emailInput" placeholder="você@exemplo.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="modal_coupon">Cupom de desconto (opcional)</label>
+        <div class="coupon-row">
+          <input class="form-input" type="text" id="couponInput" placeholder="Ex: TOCA20" style="text-transform:uppercase;">
+          <button class="btn-apply" onclick="applyCoupon()" data-i18n="modal_apply">Aplicar</button>
+        </div>
+        <div class="coupon-feedback" id="couponFeedback"></div>
+      </div>
+      <button class="plan-btn plan-btn-gold modal-submit" onclick="submitWaitlist()" data-i18n="modal_submit">Entrar na lista de espera →</button>
+      <p class="modal-legal" data-i18n="modal_legal">Ao continuar, você concorda com nossos Termos de Uso e Política de Privacidade. Sem compromisso.</p>
+    </div>
+    <div class="success-state" id="modalSuccess">
+      <div class="success-icon">✦</div>
+      <h3 class="success-title" data-i18n="success_title">Você está na lista!</h3>
+      <p class="success-sub" data-i18n="success_sub">Em breve você receberá seu acesso ao trial. Fique de olho no seu email.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const COUPONS = { 'TOCA20': 20, 'LAUNCH50': 50, 'AGENCY30': 30 };
+let currentLang = 'pt';
+let isAnnual = false;
+let currentPlan = 'pro';
+let appliedDiscount = 0;
+
+const PRICES = {
+  pt: { starter:[97,77], pro:[197,157], agency:[397,317], sym:'R$' },
+  en: { starter:[19,15], pro:[39,31], agency:[79,63], sym:'$' },
+  es: { starter:[18,14], pro:[37,30], agency:[75,60], sym:'€' }
+};
+
+const i18n = {
+  pt: {
+    nav_features:'Funcionalidades', nav_pricing:'Planos', nav_testimonials:'Depoimentos', nav_cta:'Começar grátis',
+    hero_badge:'Mercado de USD 51 bilhões · Você no centro',
+    hero_h1_html:'O sistema operacional<br>do <em>concierge</em> <strong>de elite</strong>',
+    hero_sub:'Gerencie clientes, propostas e operações em um único lugar. Do lead ao PDF de proposta — em segundos.',
+    hero_cta1:'Iniciar 7 dias grátis', hero_cta2:'Ver demo ao vivo →',
+    hero_note:'Sem cartão de crédito · Cancele quando quiser · Suporte em PT, EN, ES',
+    stat1:'Mercado em 2036', stat2:'Idiomas suportados', stat3:'Dias grátis de trial', stat4:'Proposta em 1 clique',
+    feat_label:'Funcionalidades', feat_title_html:'Tudo que você precisa<br>para <em>operar no mais alto nível</em>',
+    feat1_title:'Pipeline Visual', feat1_desc:'Kanban interativo com drag & drop. Arraste propostas entre Lead → Confirmado e o banco atualiza automaticamente.', feat1_tag:'Drag & Drop',
+    feat2_title:'PDF de Proposta', feat2_desc:'Gere propostas comerciais em PDF com design premium em segundos. Multilíngue, com seus dados e do cliente.', feat2_tag:'Design Premium',
+    feat3_title:'Agenda Inteligente', feat3_desc:'Alertas automáticos para tarefas próximas do horário. Notificação pulsante quando falta menos de 30 minutos.', feat3_tag:'Notificações',
+    feat4_title:'Relatórios Completos', feat4_desc:'Receita por mês, taxa de conversão, top clientes e sazonalidade. Prove ROI para seus clientes com dados reais.', feat4_tag:'Plano Pro',
+    feat5_title:'Multilíngue', feat5_desc:'Interface completa em Português, English e Español. PDFs gerados no idioma do cliente.', feat5_tag:'PT · EN · ES',
+    feat6_title:'White-label', feat6_desc:'Para agências: use sua própria logo e cores. Seus clientes veem sua marca, não a nossa.', feat6_tag:'Plano Agency',
+    pricing_label:'Planos', pricing_title_html:'Preços <em>simples e transparentes</em>',
+    billing_monthly:'Mensal', billing_annual:'Anual', billing_save:'Economize 20%', per_month:'por mês',
+    most_popular:'Mais popular', plan_trial:'Iniciar 7 dias grátis', plan_talk:'Falar com vendas',
+    no_card:'Sem cartão de crédito', agency_note:'Para agências e operações',
+    s1:'Até 5 clientes ativos', s2:'Pipeline kanban', s3:'Agenda com notificações', s4:'PDF de proposta', s5:'App mobile', s6:'Relatórios (Pro)', s7:'White-label (Agency)',
+    p1:'Clientes ilimitados', p2:'Pipeline + drag & drop', p3:'Relatórios completos', p4:'PDF multilíngue', p5:'Exportação de dados', p6:'Suporte prioritário', p7:'White-label (Agency)',
+    a1:'Até 3 usuários', a2:'Tudo do Pro', a3:'White-label completo', a4:'Logo e cores próprias', a5:'API access', a6:'Onboarding dedicado',
+    test_label:'Depoimentos', test_title_html:'Concierges que já<br><em>operam no próximo nível</em>',
+    cta_label:'Comece hoje', cta_title_html:'Pronto para operar<br>no <em>mais alto nível?</em>',
+    cta_sub:'7 dias grátis, sem cartão. Cancele quando quiser. Suporte humano em português, inglês e espanhol.',
+    cta_btn1:'Iniciar trial gratuito', cta_btn2:'Acessar demo →',
+    footer_privacy:'Privacidade', footer_terms:'Termos', footer_contact:'Contato',
+    modal_title:'Iniciar trial gratuito', modal_sub:'7 dias grátis. Sem cartão de crédito.',
+    modal_email:'E-mail profissional', modal_coupon:'Cupom de desconto (opcional)',
+    modal_apply:'Aplicar', modal_submit:'Entrar na lista de espera →',
+    modal_legal:'Ao continuar, você concorda com nossos Termos de Uso e Política de Privacidade.',
+    success_title:'Você está na lista!', success_sub:'Em breve você receberá seu acesso ao trial. Fique de olho no seu email.',
+    coupon_ok:'✓ Cupom aplicado! Você economiza', coupon_err:'Cupom inválido ou expirado', off:'% de desconto'
+  },
+  en: {
+    nav_features:'Features', nav_pricing:'Pricing', nav_testimonials:'Testimonials', nav_cta:'Start free',
+    hero_badge:'USD 51 billion market · You at the center',
+    hero_h1_html:'The operating system<br>for <em>elite</em> <strong>concierges</strong>',
+    hero_sub:'Manage clients, proposals and operations in one place. From lead to proposal PDF — in seconds.',
+    hero_cta1:'Start 7-day free trial', hero_cta2:'View live demo →',
+    hero_note:'No credit card · Cancel anytime · Support in PT, EN, ES',
+    stat1:'Market by 2036', stat2:'Supported languages', stat3:'Free trial days', stat4:'Proposal in 1 click',
+    feat_label:'Features', feat_title_html:'Everything you need<br>to <em>operate at the highest level</em>',
+    feat1_title:'Visual Pipeline', feat1_desc:'Interactive kanban with drag & drop. Move proposals from Lead → Confirmed and the database updates automatically.', feat1_tag:'Drag & Drop',
+    feat2_title:'Proposal PDF', feat2_desc:'Generate premium proposal PDFs in seconds. Multilingual, with your data and your client\'s.', feat2_tag:'Premium Design',
+    feat3_title:'Smart Schedule', feat3_desc:'Automatic alerts for upcoming tasks. Pulsing notification when less than 30 minutes away.', feat3_tag:'Notifications',
+    feat4_title:'Full Reports', feat4_desc:'Monthly revenue, conversion rate, top clients and seasonality. Prove ROI to your clients with real data.', feat4_tag:'Pro Plan',
+    feat5_title:'Multilingual', feat5_desc:'Full interface in Portuguese, English and Spanish. PDFs generated in your client\'s language.', feat5_tag:'PT · EN · ES',
+    feat6_title:'White-label', feat6_desc:'For agencies: use your own logo and colors. Your clients see your brand, not ours.', feat6_tag:'Agency Plan',
+    pricing_label:'Pricing', pricing_title_html:'Simple and <em>transparent pricing</em>',
+    billing_monthly:'Monthly', billing_annual:'Annual', billing_save:'Save 20%', per_month:'per month',
+    most_popular:'Most popular', plan_trial:'Start 7-day free trial', plan_talk:'Talk to sales',
+    no_card:'No credit card required', agency_note:'For agencies and operations',
+    s1:'Up to 5 active clients', s2:'Kanban pipeline', s3:'Schedule with notifications', s4:'Proposal PDF', s5:'Mobile app', s6:'Reports (Pro)', s7:'White-label (Agency)',
+    p1:'Unlimited clients', p2:'Pipeline + drag & drop', p3:'Full reports', p4:'Multilingual PDF', p5:'Data export', p6:'Priority support', p7:'White-label (Agency)',
+    a1:'Up to 3 users', a2:'Everything in Pro', a3:'Full white-label', a4:'Custom logo & colors', a5:'API access', a6:'Dedicated onboarding',
+    test_label:'Testimonials', test_title_html:'Concierges already<br><em>operating at the next level</em>',
+    cta_label:'Start today', cta_title_html:'Ready to operate<br>at the <em>highest level?</em>',
+    cta_sub:'7 days free, no card. Cancel anytime. Human support in Portuguese, English and Spanish.',
+    cta_btn1:'Start free trial', cta_btn2:'View demo →',
+    footer_privacy:'Privacy', footer_terms:'Terms', footer_contact:'Contact',
+    modal_title:'Start free trial', modal_sub:'7 days free. No credit card.',
+    modal_email:'Professional email', modal_coupon:'Discount coupon (optional)',
+    modal_apply:'Apply', modal_submit:'Join the waitlist →',
+    modal_legal:'By continuing, you agree to our Terms of Use and Privacy Policy.',
+    success_title:'You\'re on the list!', success_sub:'You\'ll receive your trial access soon. Keep an eye on your email.',
+    coupon_ok:'✓ Coupon applied! You save', coupon_err:'Invalid or expired coupon', off:'% off'
+  },
+  es: {
+    nav_features:'Funciones', nav_pricing:'Precios', nav_testimonials:'Testimonios', nav_cta:'Empezar gratis',
+    hero_badge:'Mercado de USD 51 mil millones · Tú en el centro',
+    hero_h1_html:'El sistema operativo<br>del <em>concierge</em> <strong>de élite</strong>',
+    hero_sub:'Gestiona clientes, propuestas y operaciones en un solo lugar. Del lead al PDF de propuesta — en segundos.',
+    hero_cta1:'Iniciar 7 días gratis', hero_cta2:'Ver demo en vivo →',
+    hero_note:'Sin tarjeta de crédito · Cancela cuando quieras · Soporte en PT, EN, ES',
+    stat1:'Mercado en 2036', stat2:'Idiomas soportados', stat3:'Días gratis de prueba', stat4:'Propuesta en 1 clic',
+    feat_label:'Funciones', feat_title_html:'Todo lo que necesitas<br>para <em>operar al más alto nivel</em>',
+    feat1_title:'Pipeline Visual', feat1_desc:'Kanban interactivo con drag & drop. Mueve propuestas de Lead → Confirmado y la base de datos se actualiza automáticamente.', feat1_tag:'Drag & Drop',
+    feat2_title:'PDF de Propuesta', feat2_desc:'Genera propuestas comerciales en PDF con diseño premium en segundos. Multilingüe.', feat2_tag:'Diseño Premium',
+    feat3_title:'Agenda Inteligente', feat3_desc:'Alertas automáticas para tareas próximas. Notificación pulsante cuando faltan menos de 30 minutos.', feat3_tag:'Notificaciones',
+    feat4_title:'Informes Completos', feat4_desc:'Ingresos por mes, tasa de conversión, mejores clientes y estacionalidad.', feat4_tag:'Plan Pro',
+    feat5_title:'Multilingüe', feat5_desc:'Interfaz completa en Portugués, Inglés y Español. PDFs generados en el idioma de tu cliente.', feat5_tag:'PT · EN · ES',
+    feat6_title:'White-label', feat6_desc:'Para agencias: usa tu propio logo y colores. Tus clientes ven tu marca, no la nuestra.', feat6_tag:'Plan Agency',
+    pricing_label:'Precios', pricing_title_html:'Precios <em>simples y transparentes</em>',
+    billing_monthly:'Mensual', billing_annual:'Anual', billing_save:'Ahorra 20%', per_month:'por mes',
+    most_popular:'Más popular', plan_trial:'Iniciar 7 días gratis', plan_talk:'Hablar con ventas',
+    no_card:'Sin tarjeta de crédito', agency_note:'Para agencias y operaciones',
+    s1:'Hasta 5 clientes activos', s2:'Pipeline kanban', s3:'Agenda con notificaciones', s4:'PDF de propuesta', s5:'App mobile', s6:'Informes (Pro)', s7:'White-label (Agency)',
+    p1:'Clientes ilimitados', p2:'Pipeline + drag & drop', p3:'Informes completos', p4:'PDF multilingüe', p5:'Exportación de datos', p6:'Soporte prioritario', p7:'White-label (Agency)',
+    a1:'Hasta 3 usuarios', a2:'Todo de Pro', a3:'White-label completo', a4:'Logo y colores propios', a5:'API access', a6:'Onboarding dedicado',
+    test_label:'Testimonios', test_title_html:'Concierges que ya<br><em>operan al siguiente nivel</em>',
+    cta_label:'Empieza hoy', cta_title_html:'¿Listo para operar<br>al <em>más alto nivel?</em>',
+    cta_sub:'7 días gratis, sin tarjeta. Cancela cuando quieras. Soporte humano en portugués, inglés y español.',
+    cta_btn1:'Iniciar prueba gratuita', cta_btn2:'Ver demo →',
+    footer_privacy:'Privacidad', footer_terms:'Términos', footer_contact:'Contacto',
+    modal_title:'Iniciar prueba gratuita', modal_sub:'7 días gratis. Sin tarjeta de crédito.',
+    modal_email:'Email profesional', modal_coupon:'Cupón de descuento (opcional)',
+    modal_apply:'Aplicar', modal_submit:'Unirse a la lista de espera →',
+    modal_legal:'Al continuar, aceptas nuestros Términos de Uso y Política de Privacidad.',
+    success_title:'¡Estás en la lista!', success_sub:'Pronto recibirás tu acceso a la prueba. Mantén un ojo en tu email.',
+    coupon_ok:'✓ ¡Cupón aplicado! Ahorras', coupon_err:'Cupón inválido o expirado', off:'% de descuento'
+  }
+};
+
+function t(key){ return (i18n[currentLang]||i18n.pt)[key] || key; }
+
+function setLang(lang){
+  currentLang = lang;
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key = el.getAttribute('data-i18n');
+    if(key.endsWith('_html')) el.innerHTML = t(key);
+    else el.textContent = t(key);
+  });
+  updatePrices();
+}
+
+function toggleBilling(){
+  isAnnual = !isAnnual;
+  document.getElementById('billingToggle').classList.toggle('on', isAnnual);
+  updatePrices();
+}
+
+function updatePrices(){
+  const p = PRICES[currentLang];
+  const i = isAnnual ? 1 : 0;
+  document.getElementById('starter-price').textContent = p.starter[i];
+  document.getElementById('pro-price').textContent = p.pro[i];
+  document.getElementById('agency-price').textContent = p.agency[i];
+  document.getElementById('starter-currency').textContent = p.sym;
+  document.getElementById('pro-currency').textContent = p.sym;
+  document.getElementById('agency-currency').textContent = p.sym;
+  updateModalPrice();
+}
+
+function openModal(plan){
+  currentPlan = plan;
+  document.getElementById('modalOverlay').classList.add('open');
+  document.getElementById('modalForm').style.display='block';
+  document.getElementById('modalSuccess').style.display='none';
+  document.getElementById('couponInput').value='';
+  document.getElementById('couponFeedback').textContent='';
+  appliedDiscount=0;
+  updateModalPrice();
+}
+
+function updateModalPrice(){
+  const p = PRICES[currentLang];
+  const i = isAnnual ? 1 : 0;
+  const names = {starter:'Starter', pro:'Pro', agency:'Agency'};
+  const prices = {starter: p.starter[i], pro: p.pro[i], agency: p.agency[i]};
+  let price = prices[currentPlan];
+  if(appliedDiscount > 0) price = Math.round(price * (1 - appliedDiscount/100));
+  document.getElementById('modalPlanName').textContent = names[currentPlan];
+  document.getElementById('modalPlanPrice').textContent = p.sym + price + '/' + t('per_month');
+}
+
+function closeModal(){ document.getElementById('modalOverlay').classList.remove('open'); }
+function closeModalOutside(e){ if(e.target===document.getElementById('modalOverlay')) closeModal(); }
+
+function applyCoupon(){
+  const code = document.getElementById('couponInput').value.trim().toUpperCase();
+  const fb = document.getElementById('couponFeedback');
+  if(COUPONS[code]){
+    appliedDiscount = COUPONS[code];
+    fb.className='coupon-feedback coupon-ok';
+    fb.textContent = t('coupon_ok') + ' ' + appliedDiscount + t('off');
+    updateModalPrice();
+  } else {
+    appliedDiscount = 0;
+    fb.className='coupon-feedback coupon-err';
+    fb.textContent = t('coupon_err');
+    updateModalPrice();
+  }
+}
+
+function submitWaitlist(){
+  const email = document.getElementById('emailInput').value.trim();
+  if(!email || !email.includes('@')){ document.getElementById('emailInput').style.borderColor='#e05c5c'; return; }
+  document.getElementById('modalForm').style.display='none';
+  document.getElementById('modalSuccess').style.display='block';
+}
+
+updatePrices();
+</script>
+</body>
+</html>
