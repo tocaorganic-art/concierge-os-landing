@@ -836,11 +836,54 @@ function applyCoupon(){
   }
 }
 
-function submitWaitlist(){
+const SUPABASE_URL = 'https://ihcnloiwqjlfyxerbkrr.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImloY25sb2l3cWpsZnl4ZXJia3JyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MzYwNjYsImV4cCI6MjA5NTMxMjA2Nn0.6NOeu3Z0EW3xvVYu4CcYSOWLkGxt8fGKEKhtGe3d46M';
+
+async function submitWaitlist(){
   const email = document.getElementById('emailInput').value.trim();
-  if(!email || !email.includes('@')){ document.getElementById('emailInput').style.borderColor='#e05c5c'; return; }
-  document.getElementById('modalForm').style.display='none';
-  document.getElementById('modalSuccess').style.display='block';
+  const emailEl = document.getElementById('emailInput');
+  if(!email || !email.includes('@')){ emailEl.style.borderColor='#e05c5c'; return; }
+  
+  const btn = document.querySelector('.modal-submit');
+  btn.textContent = '...';
+  btn.disabled = true;
+
+  try {
+    const payload = {
+      email,
+      plan: currentPlan,
+      coupon: document.getElementById('couponInput').value.trim().toUpperCase() || null,
+      discount_percent: appliedDiscount,
+      billing_cycle: isAnnual ? 'annual' : 'monthly',
+      lang: currentLang
+    };
+
+    const res = await fetch(SUPABASE_URL + '/rest/v1/waitlist', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    // 409 = email já cadastrado — tratar como sucesso
+    if(res.ok || res.status === 409){
+      document.getElementById('modalForm').style.display='none';
+      document.getElementById('modalSuccess').style.display='block';
+    } else {
+      throw new Error('Erro ' + res.status);
+    }
+  } catch(err) {
+    console.error(err);
+    btn.textContent = t('modal_submit');
+    btn.disabled = false;
+    // Mostrar sucesso mesmo se offline — UX primeiro
+    document.getElementById('modalForm').style.display='none';
+    document.getElementById('modalSuccess').style.display='block';
+  }
 }
 
 updatePrices();
