@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -351,6 +351,32 @@ footer{border-top:1px solid var(--border);padding:36px 48px;display:flex;align-i
   footer{flex-direction:column;text-align:center;}
 }
 </style>
+
+  <!-- Meta Pixel Code — ID: 973466768729401 -->
+  <script>
+  !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+  n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+  document,'script','https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init', '973466768729401');
+  fbq('track', 'PageView');
+  </script>
+  <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=973466768729401&ev=PageView&noscript=1"/></noscript>
+  <!-- End Meta Pixel Code -->
+  <script>
+  async function trackMetaEvent(eventName, userData, customData) {
+    if (typeof fbq !== 'undefined') fbq('track', eventName, customData || {});
+    try {
+      await fetch('/api/meta-conversions', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ event_name: eventName, event_source_url: window.location.href,
+          user_data: userData || {}, custom_data: customData || {} })
+      });
+    } catch (e) { console.warn('[Meta] Conversions API:', e.message); }
+  }
+  </script>
 </head>
 <body>
 <div class="scroll-progress" id="scrollProgress"></div>
