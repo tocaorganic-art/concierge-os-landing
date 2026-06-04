@@ -813,16 +813,16 @@ async function submitWaitlist(){
   if(!email||!email.includes('@')){alert('Por favor, insira um e-mail válido.');return;}
   const btn=document.querySelector('.modal-submit');btn.textContent='...';btn.disabled=true;
   // URLs de checkout Cakto por plano e ciclo
-  const cycle=document.getElementById('billingCycle')?.checked?'annual':'monthly';
+  const cycle=isAnnual?'annual':'monthly';
   const CHECKOUT={
     starter:{monthly:'https://pay.cakto.com.br/3fc2e2t',annual:'https://pay.cakto.com.br/f93s3yb'},
     pro:{monthly:'https://pay.cakto.com.br/kreggd2',annual:'https://pay.cakto.com.br/4fwxmw3'},
     agency:{monthly:'https://pay.cakto.com.br/othdzvq',annual:'https://pay.cakto.com.br/zs6giz7'}
   };
   const checkoutUrl=(CHECKOUT[currentPlan]||CHECKOUT.pro)[cycle];
-  const discount=discountApplied||0;
+  const couponCode=document.getElementById('couponInput')?.value.trim().toUpperCase()||'';
   // Redirecionar direto para checkout Cakto com email pré-preenchido
-  window.location.href=checkoutUrl+'?email='+encodeURIComponent(email)+(discount>0?'&coupon='+encodeURIComponent(document.getElementById('couponInput').value.trim().toUpperCase()):'');
+  window.location.href=checkoutUrl+'?email='+encodeURIComponent(email)+(discount>0&&couponCode?'&coupon='+encodeURIComponent(couponCode):'');
 }
 
 // FAQ
