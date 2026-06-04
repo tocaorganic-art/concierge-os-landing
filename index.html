@@ -812,15 +812,24 @@ async function submitWaitlist(){
   const email=document.getElementById('emailInput').value.trim();
   if(!email||!email.includes('@')){document.getElementById('emailInput').style.borderColor='var(--red)';return;}
   const btn=document.querySelector('.modal-submit');btn.textContent='...';btn.disabled=true;
+  // URLs de checkout Cakto por plano e ciclo
+  const CHECKOUT={
+    starter:{monthly:'https://pay.cakto.com.br/3fc2e2t',annual:'https://pay.cakto.com.br/f93s3yb'},
+    pro:{monthly:'https://pay.cakto.com.br/kreggd2',annual:'https://pay.cakto.com.br/4fwxmw3'},
+    agency:{monthly:'https://pay.cakto.com.br/othdzvq',annual:'https://pay.cakto.com.br/zs6giz7'}
+  };
+  const cycle=isAnnual?'annual':'monthly';
+  const checkoutUrl=(CHECKOUT[currentPlan]||CHECKOUT.pro)[cycle];
   try{
-    await fetch(SUPABASE_URL+'/rest/v1/waitlist',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Prefer':'return=minimal'},body:JSON.stringify({email,plan:currentPlan,coupon:document.getElementById('couponInput').value.trim().toUpperCase()||null,discount_percent:discount,billing_cycle:isAnnual?'annual':'monthly',lang})});
+    await fetch(SUPABASE_URL+'/rest/v1/waitlist',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Prefer':'return=minimal'},body:JSON.stringify({email,plan:currentPlan,coupon:document.getElementById('couponInput').value.trim().toUpperCase()||null,discount_percent:discount,billing_cycle:cycle,lang})});
   }catch(e){}
-  // Meta Conversions API — evento Lead ao entrar na lista de espera
+  // Meta CAPI — evento Lead
   try{
-    await trackMetaEvent('Lead',{em:email},{content_name:'Waitlist '+currentPlan,content_category:'concierge_lead',value:currentPlan==='pro'?197:currentPlan==='starter'?97:497,currency:'BRL'});
+    const prices={starter:isAnnual?77:97,pro:isAnnual?157:197,agency:isAnnual?317:397};
+    await trackMetaEvent('Lead',{em:email},{content_name:'Waitlist '+currentPlan+' '+cycle,content_category:'concierge_lead',value:prices[currentPlan]||197,currency:'BRL'});
   }catch(e){}
-  document.getElementById('modalForm').style.display='none';
-  document.getElementById('modalSuccess').style.display='block';
+  // Redirecionar para checkout Cakto com email pré-preenchido
+  window.location.href=checkoutUrl+'?email='+encodeURIComponent(email)+(discount>0?'&coupon='+encodeURIComponent(document.getElementById('couponInput').value.trim().toUpperCase()):'');
 }
 
 // FAQ
